@@ -1,0 +1,37 @@
+# Create GitHub Action Workflow to deploy
+
+name: Deploy HTML to EC2
+
+on :
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: Copy file to EC2 instance
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "./*"
+          target: "/home/${{ secrets.EC2_USER }}/html/app"
+
+      - name: Restart to web restart server 
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo apt update
+            sudo apt install -y nginx
+            sudo cp /home/${{ secrets.EC2_USER }}/app/index.html /var/www/html/index.html
+            sudo systemctl restart nginx        
