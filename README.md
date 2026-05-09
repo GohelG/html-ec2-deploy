@@ -1,26 +1,18 @@
-# 🚀 HTML EC2 Deploy — CI/CD Pipeline with GitHub Actions & AWS EC2
+🚀 HTML EC2 Deploy — CI/CD Pipeline with GitHub Actions & AWS EC2
 
 A simple DevOps project demonstrating automated deployment of a static HTML website to an AWS EC2 instance using GitHub Actions and SSH-based deployment.
 
-This project showcases a basic CI/CD workflow where every push to the `main` branch automatically deploys the latest application changes to an Ubuntu EC2 server running Nginx.
+This project showcases a basic CI/CD workflow where every push to the main branch automatically deploys the latest application changes to an Ubuntu EC2 server running Nginx.
 
----
-
-# 📌 Project Overview
-
+📌 Project Overview
 This repository demonstrates:
+✅ Automated CI/CD deployment using GitHub Actions
+✅ Secure SSH authentication using GitHub Secrets
+✅ Deployment to AWS EC2 Ubuntu instance
+✅ Static website hosting with Nginx
+✅ Automatic code updates on every GitHub push
+🏗️ Architecture Workflow
 
-- ✅ Automated CI/CD deployment using GitHub Actions
-- ✅ Secure SSH authentication using GitHub Secrets
-- ✅ Deployment to AWS EC2 Ubuntu instance
-- ✅ Static website hosting with Nginx
-- ✅ Automatic code updates on every GitHub push
-
----
-
-# 🏗️ Architecture Workflow
-
-```text
 Developer Push → GitHub Repository → GitHub Actions Workflow
         ↓
 SSH Connection using Secrets
@@ -47,54 +39,51 @@ html-ec2-deploy/
 └── .github/
     └── workflows/
         └── main.yml
+        
 ⚙️ Phase 1 — Server Setup on AWS EC2
-Step 1.1 — Launch EC2 Instance
 
-Create an Ubuntu EC2 instance from AWS Console.
+**Step 1.1 — Launch EC2 Instance**
+- Create an Ubuntu EC2 instance from AWS Console.
 
-Open Required Ports in Security Group
-Port	Purpose
-22	SSH Access
-80	HTTP Traffic
-Step 1.2 — Create Deployment User
+**Open Required Ports in Security Group**
+- Port	 Purpose
+- 22	 SSH Access
+- 80	 HTTP Traffic
 
-Connect to EC2:
+**Step 1.2 — Create Deployment User**
 
+**Connect to EC2:**
 ssh -i your-key.pem ubuntu@<EC2_PUBLIC_IP>
 
-Create a new deployment user:
-
+**Create a new deployment user:**
 sudo adduser devopsuser
 
-(Optional) Grant sudo access:
-
+**(Optional) Grant sudo access:**
 sudo usermod -aG sudo devopsuser
-Step 1.3 — Configure SSH Access
 
-Switch to the new user:
+**Step 1.3 — Configure SSH Access**
 
+- Switch to the new user:
 su - devopsuser
 
-Create SSH directory and permissions:
-
+- Create SSH directory and permissions:
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
-
 touch ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 
-Paste your local machine public key:
-
+- Paste your local machine public key:
 nano ~/.ssh/authorized_keys
+
 🌐 Phase 2 — Application Setup
 
-Create deployment directory:
+- Create deployment directory:
 
 sudo mkdir -p /var/www/html/my-app
 sudo chown -R devopsuser:devopsuser /var/www/html/my-app
-Sample HTML Page
 
-Create an index.html file in your repository:
+- Sample HTML Page
+- Create an index.html file in your repository:
 
 <!DOCTYPE html>
 <html>
@@ -106,25 +95,26 @@ Create an index.html file in your repository:
     <p>Managed automatically using GitHub Actions.</p>
 </body>
 </html>
+
 🔐 Phase 3 — Configure GitHub Secrets
 
-Navigate to:
-
+- Navigate to:
 GitHub Repository → Settings → Secrets and Variables → Actions
 
-Add the following repository secrets:
+- Add the following repository secrets:
 
 Secret Name	Description
 EC2_HOST	EC2 Public IP
 EC2_USER	devopsuser
 EC2_SSH_KEY	Private SSH Key Content
+
 ⚡ Phase 4 — GitHub Actions Workflow
 
-Create:
+- Create:
 
 .github/workflows/main.yml
 
-Add the following workflow:
+- Add the following workflow:
 
 name: EC2 Deployment Pipeline
 
@@ -160,37 +150,37 @@ jobs:
             fi
 
             sudo systemctl restart nginx
+
 ✅ Final Verification
-Push Code to GitHub
+
+**Push Code to GitHub**
 git add .
 git commit -m "Initial deployment"
 git push origin main
-Monitor Deployment
+**Monitor Deployment**
 
-Go to:
-
+**Go to:**
 GitHub Repository → Actions
-
 Check workflow execution logs.
-
 Access the Website
-
 Open in browser:
 http://<EC2_PUBLIC_IP>/my-app/index.html
 
 🔒 Security Best Practices
-Never hardcode private keys in code
-Store sensitive credentials in GitHub Secrets
-Restrict EC2 Security Group access
-Use SSH key authentication instead of passwords
-Rotate SSH keys periodically
+
+- Never hardcode private keys in code
+- Store sensitive credentials in GitHub Secrets
+- Restrict EC2 Security Group access
+- Use SSH key authentication instead of passwords
+- Rotate SSH keys periodically
 
 📈 Future Improvements
-Add custom domain with Cloudflare
-Enable HTTPS using SSL certificates
-Add Docker container deployment
-Integrate Load Balancer & Auto Scaling
-Deploy React + Node.js full-stack applications
+
+- Add custom domain with Cloudflare
+- Enable HTTPS using SSL certificates
+- Add Docker container deployment
+- Integrate Load Balancer & Auto Scaling
+- Deploy React + Node.js full-stack applications
 
 👨‍💻 Author
 Gautam Gohil
