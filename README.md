@@ -4,121 +4,103 @@ A simple HTML page for CI/CD demo
 
 This guide outlines securing SSH keys in GitHub Secrets and deploying static HTML to AWS EC2 using GitHub Actions workflows. The process involves configuring secrets for host and user data, then implementing a YAML workflow to automate file transfers and Nginx restarts upon pushes to the main branch. The generated documentation covers these essential DevOps steps to establish a functional CI/CD pipeline for web server automation.
 
+Phase 1: Server-Side Preparation
+Before GitHub can deploy, the devopsuser must be configured on the Ubuntu instance to handle incoming SSH connections.
 
-Step 1.1 – Launch an EC2 Instance
+Step 1.2 – Create a DevOps User
+Log into your EC2 instance as the default ubuntu user.
 
-Step 1: Launch Instance Wizard
-- Log in to your AWS Management Console.
-- Search for EC2 in the top search bar and click on the service.
--  On the EC2 Dashboard, click the Launch instance button.
+Create the new user:
 
-Step 2: Name and OS (AMI)
-- Name: In the "Name and tags" field, type Web1.
-- Application and OS Images (Amazon Machine Image):
-- Select Ubuntu from the Quick Start icons.
-Ensure the dropdown shows a recent version (e.g., Ubuntu Server 24.04 LTS or 22.04 LTS).
+Bash
+sudo adduser devopsuser
+Grant the user administrative privileges (optional but helpful for deployments):
 
-Step 3: Instance Type and Key Pair
-- Instance type: Open the dropdown and select t2.micro. (Note: Make sure you are in a region that supports t3.micro, otherwise t2.micro is the usual free-tier alternative).
-- Key pair (login): Select an existing key pair or click Create new key pair so you can SSH into the box later. You'll need this .pem or .ppk file.
+Bash
+sudo usermod -aG sudo devopsuser
+Step 1.3 – Configure SSH Key for devopsuser
+Switch to the new user:
 
-Step 4: Network Settings (Security Group)
-- This is where we handle your port access. In the Network settings section, click Edit (top right of the section).
-- Security group: Select Create security group.
-- Security group name: Give it a name like web-server-sg.
-- Inbound Security Groups Rules:
-- Rule 1 (SSH):
-  - Type: SSH
-  - Protocol: TCP
-  - Port range: 22
-- Source type: Select My IP (Best practice for security) or Anywhere (0.0.0.0/0).
-  - Rule 2 (HTTP):
-  - Click Add security group rule.
-  - Type: HTTP
-  - Protocol: TCP
-  - Port range: 80
-  -  Source type: Anywhere (0.0.0.0/0).
+Bash
+   su - devopsuser
+Create the SSH directory and set permissions:
 
-Step 5: Final Review and Launch
-- Configure storage: The default (8GB or 30GB GP3) is usually fine for a basic Ubuntu server.
-- Summary: Double-check the panel on the right to ensure it says Web1, Ubuntu, and t3.micro.
-- Click Launch instance.
+Bash
+   mkdir -p ~/.ssh
+   chmod 700 ~/.ssh
+   touch ~/.ssh/authorized_keys
+   chmod 600 ~/.ssh/authorized_keys
+Paste your Public Key (generated locally) into the authorized_keys file using nano ~/.ssh/authorized_keys.
 
-# Example command to connect to your EC2 instance
-ssh -i DevOpsGA.pem ubuntu@<EC2-PUBLIC-IP>
+Phase 2: Application Setup (Simple HTML Page)
+To verify the deployment works, create a target directory on the server where the code will live.
 
-Step 1.2 – Create a DevOps User for Deployment
+Create a project folder:
 
-1. Windows (using PowerShell)
-Windows 10 and 11 have OpenSSH built-in, making it very similar to Linux.
+Bash
+   sudo mkdir -p /var/www/html/my-app
+   sudo chown -R devopsuser:devopsuser /var/www/html/my-app
+On your local machine, create a simple index.html file in your GitHub repository:
 
-Generate Key: Open PowerShell and run:
+HTML
+   <!DOCTYPE html>
+   <html>
+   <body>
+       <h1>Deployment Successful!</h1>
+       <p>Managed via GitHub Actions.</p>
+   </body>
+   </html>
+Phase 3: Storing Secrets & Workflow
+Step 3.1: Store SSH Key in GitHub Secrets
+Navigate to your repository on GitHub.
 
-PowerShell
-ssh-keygen -t ed25519 -C "windows_devops"
-View Public Key: Run this to see the text you need to copy:
+Go to Settings > Secrets and variables > Actions.
 
-PowerShell
-    Get-Content $HOME\.ssh\id_ed25519.pub
-    ```
-*   **Connect:**
-    ```powershell
-    ssh -i $HOME\.ssh\id_ed25519 ubuntu@<EC2-Public-IP>
-    ```
+Click New repository secret for each of the following:
 
-### 2. Ubuntu (Linux)
-The terminal is native here, so the commands are direct and handle permissions easily.
+EC2_HOST: Your EC2 Public IP (e.g., 54.123.45.67).
 
-*   **Generate Key:** Open your **Terminal** and run:
-    
-```bash
-    ssh-keygen -t ed25519 -C "ubuntu_devops"
-    ```
-*   **View Public Key:**
-    
-```bash
-    cat ~/.ssh/id_ed25519.pub
-    ```
-*   **Fix Permissions:** Ensure your local keys are protected:
-    
-```bash
-    chmod 600 ~/.ssh/id_ed25519
-    ```
-*   **Connect:**
-    
-```bash
-    ssh -i ~/.ssh/id_ed25519 ubuntu@<EC2-Public-IP>
-    ```
+EC2_USER: devopsuser.
 
-### 3. macOS
-macOS is Unix-based, so the steps are almost identical to Ubuntu but utilize the native **Terminal** or **iTerm2**.
+EC2_SSH_KEY: The entire content of your Private Key (usually found at ~/.ssh/id_ed25519 on your local machine).
 
-*   **Generate Key:** Run:
-    
-```zsh
-    ssh-keygen -t ed25519 -C "macos_devops"
-    ```
-*   **View Public Key:**
-    
-```zsh
-    cat ~/.ssh/id_ed25519.pub | pbcopy
-    ```
-    *(Tip: Adding `| pbcopy` at the end automatically copies it to your clipboard!)*
-*   **Connect:**
-    
-```zsh
-    ssh -i ~/.ssh/id_ed25519 ubuntu@<EC2-Public-IP>
-    ```
+Step 3.2: Create GitHub Actions Workflow
+Create a file at .github/workflows/main.yml in your repository and paste the following:
 
----
+YAML
+name: EC2 Deployment
 
-### Quick Troubleshooting Tip
-Regardless of your OS, if you receive a **"Permission Denied"** or **"Unprotected Private Key File"** error when trying to connect, it means your computer thinks the private key is too "public." 
+on:
+  push:
+    branches:
+      - main  # Triggers deployment on push to main
 
-> **The Fix:** Make sure the folder (`.ssh`) and the key itself (`id_ed25519`) are restricted so only you can read them. On Mac/Ubuntu, this is `chmod 600`. On Windows, you can right-click the file > Properties > Security to limit access to your specific user account.
-```</EC2-Public-IP></EC2-Public-IP>
-**html-ec2-deploy**
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-A simple HTML page for CI/CD demo
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # Navigate to the app directory
+            cd /var/www/html/my-app
+            # Initialize git if not already done, or pull latest changes
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              git pull origin main
+            fi
+Final Verification
+Commit and Push: Push these changes to your GitHub main branch.
 
-This guide outlines securing SSH keys in GitHub Secrets and deploying static HTML to AWS EC2 using GitHub Actions workflows. The process involves configuring secrets for host and user data, then implementing a YAML workflow to automate file transfers and Nginx restarts upon pushes to the main branch. The generated documentation covers these essential DevOps steps to establish a functional CI/CD pipeline for web server automation.
+Monitor: Go to the Actions tab in GitHub to watch the progress.
+
+Check Web1: Navigate to http://<EC2-PUBLIC-IP>/my-app/index.html in your browser.
