@@ -117,3 +117,8 @@ Regardless of your OS, if you receive a **"Permission Denied"** or **"Unprotecte
 
 > **The Fix:** Make sure the folder (`.ssh`) and the key itself (`id_ed25519`) are restricted so only you can read them. On Mac/Ubuntu, this is `chmod 600`. On Windows, you can right-click the file > Properties > Security to limit access to your specific user account.
 ```</EC2-Public-IP></EC2-Public-IP>
+**html-ec2-deploy**
+
+A simple HTML page for CI/CD demo
+
+This guide outlines securing SSH keys in GitHub Secrets and deploying static HTML to AWS EC2 using GitHub Actions workflows. The process involves configuring secrets for host and user data, then implementing a YAML workflow to automate file transfers and Nginx restarts upon pushes to the main branch. The generated documentation covers these essential DevOps steps to establish a functional CI/CD pipeline for web server automation.
