@@ -136,7 +136,7 @@ sudo chown -R devopsuser:devopsuser /var/www/html/my-app
 
 ## Sample HTML Page
 
-Create an `index.html` file in your repository:
+Create an `index.html` (This is sample code for an HTML static web page.) file in your repository:
 
 ```html
 <!DOCTYPE html>
