@@ -176,7 +176,7 @@ Add the following repository secrets:
 Create:
 
 ```text
-.github/workflows/main.yml
+.github/workflows/deploy.yml
 ```
 
 Add the following workflow:
