@@ -55,7 +55,7 @@ html-ec2-deploy/
 ├── README.md
 └── .github/
     └── workflows/
-        └── main.yml
+        └── deploy.yml
 ```
 
 ---
